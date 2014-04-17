@@ -3,15 +3,24 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wfi ="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-        Title="DScanner Software" Height="480" Width="600">
+        Title="DScanner Software" Height="480" Width="600" WindowStartupLocation="CenterScreen">
     <Grid>
-        <Label Content="Camera:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
-        <ComboBox x:Name="cbxVideoDeviceList" VerticalAlignment="Top" Margin="72,10,295,0" Height="25"/>
-        <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Right" VerticalAlignment="Top" Width="90" Margin="0,10,200,0" Height="25" Click="btnConnect_Click"/>
-        <Button x:Name="btnDisconnect" Content="Disconnect" VerticalAlignment="Top" Margin="0,10,105,0" Height="25" HorizontalAlignment="Right" Width="90" Click="btnDisconnect_Click"/>
-        <Button x:Name="btnSnapshot" Content="Snapshot" VerticalAlignment="Top" Margin="0,10,10,0" Height="25" HorizontalAlignment="Right" Width="90" Click="btnSnapshot_Click"/>
-        <wfi:WindowsFormsHost Margin="10,50,10,10">
-            <wf:PictureBox x:Name="picDisplay" Margin="0,0,0,0"></wf:PictureBox>
-        </wfi:WindowsFormsHost>
+        <Menu Height="25" VerticalAlignment="Top" Margin="0,0,0,0">
+            <MenuItem x:Name="menu_File" Header="File" Height="25">
+                <Separator/>
+                <MenuItem x:Name="menu_File_Exit" Header="Exit" Click="menu_File_Exit_Click"/>
+            </MenuItem>
+            <MenuItem x:Name="menu_Processor" Header="Processor" Height="25" Click="menu_Processor_Click"/>
+        </Menu>
+        <Grid Margin="0,30,0,0">
+            <Label Content="Camera:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+            <ComboBox x:Name="cbxVideoDeviceList" VerticalAlignment="Top" Margin="72,10,295,0" Height="25"/>
+            <Button x:Name="btnConnect" Content="Connect" HorizontalAlignment="Right" VerticalAlignment="Top" Width="90" Margin="0,10,200,0" Height="25" Click="btnConnect_Click"/>
+            <Button x:Name="btnDisconnect" Content="Disconnect" VerticalAlignment="Top" Margin="0,10,105,0" Height="25" HorizontalAlignment="Right" Width="90" Click="btnDisconnect_Click"/>
+            <Button x:Name="btnSnapshot" Content="Snapshot" VerticalAlignment="Top" Margin="0,10,10,0" Height="25" HorizontalAlignment="Right" Width="90" Click="btnSnapshot_Click"/>
+            <wfi:WindowsFormsHost Margin="10,50,10,10">
+                <wf:PictureBox x:Name="picDisplay" Margin="0,0,0,0"></wf:PictureBox>
+            </wfi:WindowsFormsHost>
+        </Grid>
     </Grid>
 </Window>

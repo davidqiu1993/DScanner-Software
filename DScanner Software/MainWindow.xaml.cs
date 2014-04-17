@@ -1,11 +1,8 @@
-﻿using System;
-using System.Windows;
-using System.Drawing;
-using AForge;
-using AForge.Video;
+﻿using AForge.Video;
 using AForge.Video.DirectShow;
-using AForge.Imaging;
-using AForge.Imaging.Filters;  
+using System;
+using System.Drawing;
+using System.Windows;
 
 namespace DScanner_Software
 {
@@ -40,10 +37,13 @@ namespace DScanner_Software
             _ProcessingFlag = true;
 
             // Get new frame
-            Bitmap bmp = eventArgs.Frame;
+            Bitmap bmp = (Bitmap)eventArgs.Frame.Clone();
 
             // Process the frame
             _ProcessCapturedImage(ref bmp);
+
+            // Display the captured image
+            picDisplay.Image = bmp;
 
             // Check if snapshot required
             if (_SnapshotFlag)
@@ -63,11 +63,15 @@ namespace DScanner_Software
         /// <param name="index">Index of the camera to connect to.</param>
         private void _ConnectCamera(int index)
         {
+            // Check if there is available camera
+            if (_VideoDevices == null) return;
+
             // Ensure the previous camera stopped
             _DisconnectCamera();
 
-            // Check if there is available camera
-            if (_VideoDevices == null) return;
+            // Clear state flags
+            _ProcessingFlag = false;
+            _SnapshotFlag = false;
 
             // Select the specific camera
             try
@@ -92,8 +96,11 @@ namespace DScanner_Software
         /// </summary>
         private void _DisconnectCamera()
         {
+            // Check if camera exists
+            if (_VideoSource == null) return;
+
             // Signal the camera to stop
-            if (_VideoSource != null) _VideoSource.SignalToStop();
+            _VideoSource.SignalToStop();
 
             // Wait for the camera until it stops
             _VideoSource.WaitForStop();
@@ -152,6 +159,18 @@ namespace DScanner_Software
         private void btnSnapshot_Click(object sender, RoutedEventArgs e)
         {
             _SnapshotFlag = true;
+        }
+
+        // Event: Click menu on "file -> exit"
+        private void menu_File_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        // Event: Click menu on "processor"
+        private void menu_Processor_Click(object sender, RoutedEventArgs e)
+        {
+            WindowHoster.ShowWindow_Processor();
         }
     }
 }
