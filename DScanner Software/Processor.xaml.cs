@@ -1,4 +1,5 @@
 ﻿using DScanner;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows;
@@ -40,14 +41,22 @@ namespace DScanner_Software
         // Event: Click binaryzation button
         private void btnBinaryzation_Click(object sender, RoutedEventArgs e)
         {
+            int bias = 0;
+            if (!(int.TryParse(txtBinaryzationBias.Text, out bias) && 0 <= bias && bias <= 255 * 3))
+            {
+                bias = 0;
+                txtBinaryzationBias.Text = "0";
+            }
+
             Stopwatch watch = new Stopwatch();
             watch.Start();
-            ImageProcessor.Binaryze(ref _TargetImage, 1, true);
+            ImageProcessor.Binaryze(ref _TargetImage, bias, true);
             watch.Stop();
             System.Windows.MessageBox.Show("Time: " + watch.Elapsed.TotalMilliseconds.ToString() + "ms");
             _UpdateDisplay();
         }
 
+        // Event: Click trim button
         private void btnTrim_Click(object sender, RoutedEventArgs e)
         {
             Stopwatch watch = new Stopwatch();
@@ -56,6 +65,19 @@ namespace DScanner_Software
             watch.Stop();
             System.Windows.MessageBox.Show("Time: " + watch.Elapsed.TotalMilliseconds.ToString() + "ms");
             _UpdateDisplay();
+        }
+
+        // Event: Click 
+        private void btnSave_Click(object sender, RoutedEventArgs e)
+        {
+            picDisplay.Image.Save("SaveImage_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".bmp");
+        }
+
+        // Event: Close the processor window
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            this.Visibility = System.Windows.Visibility.Hidden;
         }
     }
 }

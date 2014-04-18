@@ -3,13 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wfi ="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-        Title="Processor" Height="400" Width="600" WindowStartupLocation="CenterScreen">
+        Title="Processor" Height="400" Width="600" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
     <Grid>
         <wfi:WindowsFormsHost Margin="0,0,220,0">
             <wf:PictureBox x:Name="picDisplay" Margin="0,0,0,0"></wf:PictureBox>
         </wfi:WindowsFormsHost>
         <Button x:Name="btnOpen" Content="Open" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,10,10,0" Height="30" Click="btnOpen_Click"/>
-        <Button x:Name="btnBinaryzation" Content="Binaryzation" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,45,10,0" Height="30" Click="btnBinaryzation_Click"/>
+        <Button x:Name="btnBinaryzation" Content="Binaryzation" HorizontalAlignment="Right" VerticalAlignment="Top" Width="100" Margin="0,45,110,0" Height="30" Click="btnBinaryzation_Click"/>
+        <TextBox x:Name="txtBinaryzationBias" HorizontalAlignment="Right" Height="30" Margin="0,45,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="95" Text="0" TextAlignment="Center" VerticalContentAlignment="Center"/>
         <Button x:Name="btnTrim" Content="Trim" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,80,10,0" Height="30" Click="btnTrim_Click"/>
+        <Button x:Name="btnSave" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,115,10,0" Height="30" Click="btnSave_Click"/>
     </Grid>
 </Window>

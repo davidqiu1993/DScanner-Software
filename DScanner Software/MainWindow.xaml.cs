@@ -42,15 +42,15 @@ namespace DScanner_Software
             // Process the frame
             _ProcessCapturedImage(ref bmp);
 
-            // Display the captured image
-            picDisplay.Image = bmp;
-
             // Check if snapshot required
             if (_SnapshotFlag)
             {
                 bmp.Save("Snapshot_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".bmp");
                 _SnapshotFlag = false;
             }
+
+            // Display the captured image
+            picDisplay.Image = bmp;
 
             // Update the processing flag indicating task finished
             _ProcessingFlag = false;
