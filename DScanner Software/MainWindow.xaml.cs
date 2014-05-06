@@ -8,11 +8,47 @@ namespace DScanner_Software
 {
     public partial class MainWindow : Window
     {
+        private Bitmap _Bitmap = null; // The current displayed bitmap
         private FilterInfoCollection _VideoDevices = null; // The available video device list
         private VideoCaptureDevice _VideoSource = null; // The current connected video source
         private bool _ProcessingFlag = false; // The flag indicating if there is task being processed
         private bool _SnapshotFlag = false; // The flag indicating if snapshot takes place
+        private bool _CalibrationFlag = false; // The flag indicating if chessboard calibration takes place
+        private bool _ConsoleScrollToEndFlag = true; // The flag indicating if the console automatically scroll to end
 
+
+        /// <summary>
+        /// Print message to console.
+        /// </summary>
+        /// <param name="message">The message to print.</param>
+        private void _ConsolePrint(string message)
+        {
+            txtConsole.Dispatcher.Invoke(new Action(() => {
+                txtConsole.Text += message;
+                if (txtConsole.LineCount > 100) txtConsole.Text = txtConsole.Text.Substring(txtConsole.GetCharacterIndexFromLineIndex(txtConsole.LineCount - 100));
+                if (_ConsoleScrollToEndFlag) txtConsole.ScrollToEnd();
+            }));
+        }
+
+        /// <summary>
+        /// Print message to console with new line at the end.
+        /// </summary>
+        /// <param name="message">The message to print</param>
+        private void _ConsolePrintLine(string message)
+        {
+            _ConsolePrint(message + "\n");
+        }
+
+
+        /// <summary>
+        /// Sum up the RGB values of a pixel.
+        /// </summary>
+        /// <param name="pix">The target pixel.</param>
+        /// <returns></returns>
+        private int _SumUpRGB(Color pix)
+        {
+            return (pix.R + pix.G + pix.B);
+        }
 
         /// <summary>
         /// Process the captured image.
@@ -20,7 +56,40 @@ namespace DScanner_Software
         /// <param name="bmp">The image as a bitmap to process.</param>
         private void _ProcessCapturedImage(ref Bitmap bmp)
         {
-            return;
+            if (_CalibrationFlag)
+            {
+                const int accuracy = 10;
+                const int accuracy_detect = 15;
+                const int spread = 90;
+                int min = 765;
+                int max = 0;
+                for (int i = 0; i < bmp.Size.Height; i += accuracy)
+                {
+                    for (int j = 0; j < bmp.Size.Width; j += accuracy)
+                    {
+                        int psum = _SumUpRGB(bmp.GetPixel(j, i));
+                        if (psum < min) min = psum;
+                        if (psum > max) max = psum;
+                    }
+                }
+                _ConsolePrintLine("(min, max) = (" + min.ToString() + ", " + max.ToString() + ")");
+
+                min += spread;
+                max -= spread;
+                for (int i = 0; i < bmp.Size.Height - accuracy_detect; i += accuracy)
+                {
+                    for (int j = 0; j < bmp.Size.Width - accuracy_detect; j += accuracy)
+                    {
+                        if (_SumUpRGB(bmp.GetPixel(j, i)) > min) continue;
+                        if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i)) < max) continue;
+                        if (_SumUpRGB(bmp.GetPixel(j, i + accuracy_detect)) < max) continue;
+                        if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i + accuracy_detect)) > min) continue;
+
+                        Graphics g = Graphics.FromImage(bmp);
+                        g.DrawEllipse(Pens.Red, j, i, accuracy_detect, accuracy_detect);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -36,21 +105,24 @@ namespace DScanner_Software
             // Update the processing flag indicating task begins
             _ProcessingFlag = true;
 
+            // Release the previous bitmap
+            if (_Bitmap != null) _Bitmap.Dispose();
+
             // Get new frame
-            Bitmap bmp = (Bitmap)eventArgs.Frame.Clone();
+            _Bitmap = (Bitmap)eventArgs.Frame.Clone();
 
             // Process the frame
-            _ProcessCapturedImage(ref bmp);
+            _ProcessCapturedImage(ref _Bitmap);
 
             // Check if snapshot required
             if (_SnapshotFlag)
             {
-                bmp.Save("Snapshot_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".bmp");
+                _Bitmap.Save("Snapshot_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".bmp");
                 _SnapshotFlag = false;
             }
 
             // Display the captured image
-            picDisplay.Image = bmp;
+            picDisplay.Image = _Bitmap;
 
             // Update the processing flag indicating task finished
             _ProcessingFlag = false;
@@ -143,6 +215,13 @@ namespace DScanner_Software
             _InitializeVideoDeviceList();
         }
 
+        // Event: Main window closed
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+
         // Event: Click connect button
         private void btnConnect_Click(object sender, RoutedEventArgs e)
         {
@@ -171,6 +250,30 @@ namespace DScanner_Software
         private void menu_Processor_Click(object sender, RoutedEventArgs e)
         {
             WindowHoster.ShowWindow_Processor();
+        }
+
+        // Event: Click menu on "Switches -> Calibration (on)" 
+        private void menu_Switches_Calibration_Checked(object sender, RoutedEventArgs e)
+        {
+            _CalibrationFlag = true;
+        }
+
+        // Event: Click menu on "Switches -> Calibration (off)"
+        private void menu_Switches_Calibration_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _CalibrationFlag = false;
+        }
+
+        // Event: Click menu on "Switches -> Console Autoscroll (on)"
+        private void menu_Switches_Checked(object sender, RoutedEventArgs e)
+        {
+            _ConsoleScrollToEndFlag = true;
+        }
+
+        // Event: Click menu on "Switches -> Console Autoscroll (off)"
+        private void menu_Switches_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _ConsoleScrollToEndFlag = false;
         }
     }
 }
