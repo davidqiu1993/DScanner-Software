@@ -80,13 +80,26 @@ namespace DScanner_Software
                 {
                     for (int j = 0; j < bmp.Size.Width - accuracy_detect; j += accuracy)
                     {
-                        if (_SumUpRGB(bmp.GetPixel(j, i)) > min) continue;
-                        if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i)) < max) continue;
-                        if (_SumUpRGB(bmp.GetPixel(j, i + accuracy_detect)) < max) continue;
-                        if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i + accuracy_detect)) > min) continue;
+                        if (_SumUpRGB(bmp.GetPixel(j, i)) <= min)
+                        {
+                            if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i)) < max) continue;
+                            if (_SumUpRGB(bmp.GetPixel(j, i + accuracy_detect)) < max) continue;
+                            if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i + accuracy_detect)) > min) continue;
 
-                        Graphics g = Graphics.FromImage(bmp);
-                        g.DrawEllipse(Pens.Red, j, i, accuracy_detect, accuracy_detect);
+                            Graphics g = Graphics.FromImage(bmp);
+                            g.DrawEllipse(Pens.Yellow, j, i, accuracy_detect, accuracy_detect);
+                        }
+
+                        if (_SumUpRGB(bmp.GetPixel(j, i)) >= max)
+                        {
+                            if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i)) > min) continue;
+                            if (_SumUpRGB(bmp.GetPixel(j, i + accuracy_detect)) > min) continue;
+                            if (_SumUpRGB(bmp.GetPixel(j + accuracy_detect, i + accuracy_detect)) < max) continue;
+
+                            Graphics g = Graphics.FromImage(bmp);
+                            g.DrawEllipse(Pens.Yellow, j, i, accuracy_detect, accuracy_detect);
+                        }
+                        
                     }
                 }
             }
