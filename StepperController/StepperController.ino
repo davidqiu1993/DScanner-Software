@@ -16,7 +16,7 @@
 
 void Phase_A()
 {
-  digitalWrite(A1, HIGH); //A1引脚高电平
+  digitalWrite(A1, HIGH); // Pin A1 in HIGH
   digitalWrite(B1, LOW);
   digitalWrite(C1, LOW);
   digitalWrite(D1, LOW);
@@ -25,7 +25,7 @@ void Phase_A()
 void Phase_B()
 {
   digitalWrite(A1, LOW);
-  digitalWrite(B1, HIGH); //B1引脚高电平
+  digitalWrite(B1, HIGH); // Pin B1 in HIGH
   digitalWrite(C1, LOW);
   digitalWrite(D1, LOW);
 }
@@ -34,7 +34,7 @@ void Phase_C()
 {
   digitalWrite(A1, LOW);
   digitalWrite(B1, LOW);
-  digitalWrite(C1, HIGH); //C1引脚高电平	
+  digitalWrite(C1, HIGH); // Pin C1 in HIGH
   digitalWrite(D1, LOW);
 }
 
@@ -43,7 +43,7 @@ void Phase_D()
   digitalWrite(A1, LOW);
   digitalWrite(B1, LOW);
   digitalWrite(C1, LOW);
-  digitalWrite(D1, HIGH); //D1引脚高电平	
+  digitalWrite(D1, HIGH); // Pin D1 in HIGH
 }
 
 
@@ -70,7 +70,7 @@ void loop()
   Serial.flush();
 
   // Send rotation command to confirm: "$$[CMD]$$"
-  Serial.print("$$"); Serial.print(cmdAngle); Serial.print("$$\n");
+  Serial.print("$$:"); Serial.print(cmdAngle); Serial.print("$$\n");
 
   // Check confirm: "OK"
   char ch_read;
@@ -88,6 +88,7 @@ void loop()
   }
 
   // Start rotatation
+  Serial.print("$$START$$\n");
   int i;
   for (i = 0; i<cmdAngle; ++i)
   {
