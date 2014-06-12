@@ -9,6 +9,10 @@
             <MenuItem x:Name="menu_File" Header="File" Height="30">
                 <MenuItem x:Name="menu_File_Exit" Header="Exit" Click="menu_File_Exit_Click" />
             </MenuItem>
+            <MenuItem x:Name="menu_Devices" Header="Devices" Height="30">
+                <MenuItem x:Name="menu_Devices_Camera" Header="Camera">
+                </MenuItem>
+            </MenuItem>
             <MenuItem x:Name="menu_Configurations" Header="Configurations" Height="30">
                 <MenuItem x:Name="menu_Configurations_Assistance" Header="Assistance">
                     <MenuItem x:Name="menu_Configurations_Assistance_Crosshair" Header="Crosshair" Checked="menu_Configurations_Assistance_Crosshair_Checked" Unchecked="menu_Configurations_Assistance_Crosshair_Unchecked" Click="menu_Configurations_Assistance_Crosshair_Click"/>

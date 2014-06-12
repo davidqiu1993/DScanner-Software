@@ -3,11 +3,12 @@ using AForge.Video.DirectShow;
 using System;
 using System.Drawing;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace DScannerServer
 {
     /// <summary>
-    /// MainWindow.xaml 的交互逻辑
+    /// Interaction logic of the main window.
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -50,7 +51,7 @@ namespace DScannerServer
         private bool _SnapshotFlag = false; // Taking snapshot
 
         #endregion
-
+        
 
         #region Assistance Functions for Console
 
@@ -93,7 +94,6 @@ namespace DScannerServer
         #endregion
 
 
-
         #region Assistance Functions for Video Stream
 
         /// <summary>
@@ -102,7 +102,20 @@ namespace DScannerServer
         /// <param name="bmp">The image as a bitmap to process.</param>
         private void _ProcessCapturedImage(ref Bitmap bmp)
         {
-            ;
+            // Append crosshair
+            if (_CrosshairFlag)
+            {
+                int halfWidth = bmp.Width / 2;
+                int halfHeight = bmp.Height / 2;
+                for (int i = 0; i < bmp.Height; ++i)
+                {
+                    bmp.SetPixel(halfWidth, i, Color.YellowGreen);
+                }
+                for (int i = 0; i < bmp.Width; ++i)
+                {
+                    bmp.SetPixel(i, halfHeight, Color.YellowGreen);
+                }
+            }
         }
 
         /// <summary>
@@ -119,7 +132,7 @@ namespace DScannerServer
             _ProcessingFlag = true;
 
             // Release the previous bitmap
-            if (_Bitmap != null) _Bitmap.Dispose();
+            //if (_Bitmap != null) _Bitmap.Dispose();
 
             // Get new frame
             _Bitmap = (Bitmap)eventArgs.Frame.Clone();
@@ -210,21 +223,24 @@ namespace DScannerServer
             // Check if input devices exist
             if (_VideoDevices.Count == 0)
             {
-                cbxVideoDeviceList.Items.Add("No local capture devices.");
-                cbxVideoDeviceList.IsEnabled = false;
+                MenuItem item = new MenuItem();
+                item.Header = "(No Camera)";
+                item.IsEnabled = false;
+                menu_Devices_Camera.Items.Add(item);
                 _VideoDevices = null;
             }
 
             // Append all available devices to the device list
-            foreach (FilterInfo device in _VideoDevices)
+            for (int i = 0; i < _VideoDevices.Count; ++i)
             {
-                cbxVideoDeviceList.Items.Add(device.Name);
+                MenuItem item = new MenuItem();
+                item.Header = _VideoDevices[i].Name;
+                item.Name = "ConnectCamera_" + i;
+                item.IsChecked = false;
+                item.Click += menu_Devices_Camera_ConnectCamera_Click;
+                menu_Devices_Camera.Items.Add(item);
             }
-
-            // Set the default device
-            cbxVideoDeviceList.SelectedIndex = 0;
         }
-
 
         #endregion
 
@@ -236,6 +252,9 @@ namespace DScannerServer
         {
             // Initialize the components
             InitializeComponent();
+
+            // Initialize the device list
+            _InitializeVideoDeviceList();
 
             // Initialize the configuration of crosshair
             _CrosshairFlag = true;
@@ -252,6 +271,7 @@ namespace DScannerServer
         // Event: Main window closed
         private void winMain_Closed(object sender, EventArgs e)
         {
+            _DisconnectCamera();
             Application.Current.Shutdown();
         }
 
@@ -263,6 +283,7 @@ namespace DScannerServer
         // Event: Click menu on "File -> Exit"
         private void menu_File_Exit_Click(object sender, RoutedEventArgs e)
         {
+            _DisconnectCamera();
             Application.Current.Shutdown();
         }
 
@@ -308,6 +329,47 @@ namespace DScannerServer
         {
             _ConsoleAutoscrollFlag = false;
             _ConsolePrintMessage("Console autoscroll configutation is disabled.", MessageLevel.Info);
+        }
+
+
+        // Event: Click menu on "Devices -> Camera -> ConnectCamera_[X]"
+        private void menu_Devices_Camera_ConnectCamera_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtain the sender MenuItem
+            MenuItem item = (MenuItem)sender;
+
+            // Traverse the all menu items
+            foreach(object traversalItem in menu_Devices_Camera.Items)
+            {
+                MenuItem traversalMenuItem = (MenuItem)traversalItem;
+                if(traversalMenuItem.Name == item.Name)
+                {
+                    if(traversalMenuItem.IsChecked)
+                    {
+                        // Disconnect the camera
+                        _DisconnectCamera();
+
+                        // Uncheck the menu item
+                        traversalMenuItem.IsChecked = false;
+                    }
+                    else
+                    {
+                        // Obtain the camera index
+                        int index = int.Parse(item.Name.Substring(14)); // ConnectCamera_[X]
+
+                        // Connect to the selected camera
+                        _ConnectCamera(index);
+
+                        // Check the menu item
+                        traversalMenuItem.IsChecked = true;
+                    }
+                }
+                else
+                {
+                    // Uncheck other menu items
+                    if (traversalMenuItem.IsChecked) traversalMenuItem.IsChecked = false;
+                }
+            }
         }
 
         #endregion
