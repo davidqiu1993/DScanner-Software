@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using AForge.Video;
+using AForge.Video.DirectShow;
+using System;
+using System.Drawing;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace DScannerServer
 {
@@ -36,17 +28,31 @@ namespace DScannerServer
         #endregion
 
 
+        #region Local Variables
+
+        private FilterInfoCollection _VideoDevices = null; // The available video device list
+        private VideoCaptureDevice _VideoSource = null; // The current connected video source
+
+        private Bitmap _Bitmap = null; // The current displayed bitmap
+        
+        #endregion
+
+
         #region Local Configurations
 
         private bool _CrosshairFlag; // Display crosshair on the video screen
+
         private int _ConsoleMaxLines = 100; // Maximum number of lines displayed on the console (Preset)
         private bool _ConsoleAutoscrollFlag; // Automatically scroll the console to the end
         private MessageLevel _ConsoleDisplayLevel = MessageLevel.Info; // Lowest message level of the console to display (Preset)
 
+        private bool _ProcessingFlag = false; // There is task being processed
+        private bool _SnapshotFlag = false; // Taking snapshot
+
         #endregion
 
 
-        #region Assistant Functions for Console
+        #region Assistance Functions for Console
 
         /// <summary>
         /// Print message to console.
@@ -83,6 +89,142 @@ namespace DScannerServer
                 _ConsolePrint("[" + DateTime.Now + "] [" + level.ToString() + "] " + message + "\n");
             }
         }
+
+        #endregion
+
+
+
+        #region Assistance Functions for Video Stream
+
+        /// <summary>
+        /// Process the captured image.
+        /// </summary>
+        /// <param name="bmp">The image as a bitmap to process.</param>
+        private void _ProcessCapturedImage(ref Bitmap bmp)
+        {
+            ;
+        }
+
+        /// <summary>
+        /// Handler of the new frame event.
+        /// </summary>
+        /// <param name="sender">The sender of the event.</param>
+        /// <param name="eventArgs">The arguments of the event.</param>
+        private void _NewFrameEventHandler(object sender, NewFrameEventArgs eventArgs)
+        {
+            // Check if there is task being processed
+            if (_ProcessingFlag) return;
+
+            // Update the processing flag indicating task begins
+            _ProcessingFlag = true;
+
+            // Release the previous bitmap
+            if (_Bitmap != null) _Bitmap.Dispose();
+
+            // Get new frame
+            _Bitmap = (Bitmap)eventArgs.Frame.Clone();
+
+            // Process the frame
+            _ProcessCapturedImage(ref _Bitmap);
+
+            // Check if snapshot required
+            if (_SnapshotFlag)
+            {
+                string filename = "Snapshot_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".bmp";
+                _Bitmap.Save(filename);
+                _ConsolePrintMessage("Snapshot is saved as \"" + filename + "\"", MessageLevel.Info);
+                _SnapshotFlag = false;
+            }
+
+            // Display the captured image
+            picDisplay.Image = _Bitmap;
+
+            // Update the processing flag indicating task finished
+            _ProcessingFlag = false;
+        }
+
+        /// <summary>
+        /// Connect to the specific camera. If no availale camera exists, 
+        /// nothing will happen.
+        /// </summary>
+        /// <param name="index">Index of the camera to connect to.</param>
+        private void _ConnectCamera(int index)
+        {
+            // Check if there is available camera
+            if (_VideoDevices == null) return;
+
+            // Ensure the previous camera stopped
+            _DisconnectCamera();
+
+            // Clear state flags
+            _ProcessingFlag = false;
+            _SnapshotFlag = false;
+
+            // Select the specific camera
+            try
+            {
+                _VideoSource = new VideoCaptureDevice(_VideoDevices[index].MonikerString);
+            }
+            catch (Exception e)
+            {
+                _ConsolePrintMessage("private void _ConnectCamera(int): " + e.Message, MessageLevel.Error);
+                return;
+            }
+
+            // Append handler to new frame event
+            _VideoSource.NewFrame += new NewFrameEventHandler(_NewFrameEventHandler);
+
+            // Connect to the camera
+            _VideoSource.Start();
+
+            // CONSOLE: Start camera message
+            _ConsolePrintMessage("Successfully connect to the camera. Video capturing and processing begins.", MessageLevel.Info);
+        }
+
+        /// <summary>
+        /// Disconnect the current camera. If camera has been stopped or 
+        /// no camera exists, nothing will happen.
+        /// </summary>
+        private void _DisconnectCamera()
+        {
+            // Check if camera exists
+            if (_VideoSource == null) return;
+
+            // Signal the camera to stop
+            _VideoSource.SignalToStop();
+            _ConsolePrintMessage("Waiting for the video stream to stop.", MessageLevel.Info);
+
+            // Wait for the camera until it stops
+            _VideoSource.WaitForStop();
+            _ConsolePrintMessage("Video device is stopped.", MessageLevel.Info);
+        }
+
+        /// <summary>
+        /// Initialize the available video device list.
+        /// </summary>
+        private void _InitializeVideoDeviceList()
+        {
+            // Obtain the list of all video input devices
+            _VideoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+
+            // Check if input devices exist
+            if (_VideoDevices.Count == 0)
+            {
+                cbxVideoDeviceList.Items.Add("No local capture devices.");
+                cbxVideoDeviceList.IsEnabled = false;
+                _VideoDevices = null;
+            }
+
+            // Append all available devices to the device list
+            foreach (FilterInfo device in _VideoDevices)
+            {
+                cbxVideoDeviceList.Items.Add(device.Name);
+            }
+
+            // Set the default device
+            cbxVideoDeviceList.SelectedIndex = 0;
+        }
+
 
         #endregion
 
