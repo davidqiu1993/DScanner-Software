@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StepperController", "Steppe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DScannerServer", "DScannerServer\DScannerServer.csproj", "{BB50BC3C-623A-4157-B61D-BBD9FC8D233B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DScannerImageLib", "DScannerImageLib\DScannerImageLib.csproj", "{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,16 @@ Global
 		{BB50BC3C-623A-4157-B61D-BBD9FC8D233B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{BB50BC3C-623A-4157-B61D-BBD9FC8D233B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BB50BC3C-623A-4157-B61D-BBD9FC8D233B}.Release|Win32.ActiveCfg = Release|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

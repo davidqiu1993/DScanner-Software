@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
+using DScanner.Image;
 
 namespace DScannerServer
 {
@@ -91,7 +92,7 @@ namespace DScannerServer
             }
         }
 
-        #endregion
+        #endregion  
 
 
         #region Assistance Functions for Video Stream

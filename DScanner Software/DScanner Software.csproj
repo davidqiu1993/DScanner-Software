@@ -133,6 +133,10 @@
       <Project>{3832a04a-9ff3-402e-8f35-095d17a232a2}</Project>
       <Name>DScanner Library</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DScannerImageLib\DScannerImageLib.csproj">
+      <Project>{69e9d8fe-8cdf-46e8-a2c3-58e5489630d4}</Project>
+      <Name>DScannerImageLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

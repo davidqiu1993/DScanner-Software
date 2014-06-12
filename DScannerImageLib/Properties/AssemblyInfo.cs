@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过以下
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("DScannerController")]
+[assembly: AssemblyTitle("DScannerImageLib")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("DScannerController")]
+[assembly: AssemblyProduct("DScannerImageLib")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-[assembly: Guid("468f0e88-5bc5-4397-8ff9-8b7503250122")]
+[assembly: Guid("475e2d18-e0e5-4384-b514-cbcb0f0b1039")]
 
 // 程序集的版本信息由下面四个值组成: 
 //

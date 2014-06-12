@@ -50,7 +50,8 @@ namespace DScanner_Software
 
             Stopwatch watch = new Stopwatch();
             watch.Start();
-            ImageProcessor.Binaryze(ref _TargetImage, bias, true);
+            //ImageProcessor.Binaryze(ref _TargetImage, bias, true);
+            DScanner.Image.ImageProcessor.Binaryze(ref _TargetImage, bias);
             watch.Stop();
             System.Windows.MessageBox.Show("Time: " + watch.Elapsed.TotalMilliseconds.ToString() + "ms");
             _UpdateDisplay();
