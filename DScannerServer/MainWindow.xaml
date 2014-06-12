@@ -1,0 +1,28 @@
+﻿<Window x:Name="winMain" x:Class="DScannerServer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wfi ="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
+        xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        Title="MainWindow" Height="600" Width="900" WindowStartupLocation="CenterScreen" Closed="winMain_Closed">
+    <Grid>
+        <Menu Height="28" VerticalAlignment="Top">
+            <MenuItem x:Name="menu_File" Header="File" Height="30">
+                <MenuItem x:Name="menu_File_Exit" Header="Exit" Click="menu_File_Exit_Click" />
+            </MenuItem>
+            <MenuItem x:Name="menu_Configurations" Header="Configurations" Height="30">
+                <MenuItem x:Name="menu_Configurations_Assistance" Header="Assistance">
+                    <MenuItem x:Name="menu_Configurations_Assistance_Crosshair" Header="Crosshair" Checked="menu_Configurations_Assistance_Crosshair_Checked" Unchecked="menu_Configurations_Assistance_Crosshair_Unchecked" Click="menu_Configurations_Assistance_Crosshair_Click"/>
+                </MenuItem>
+                <MenuItem x:Name="menu_Configurations_Console" Header="Console">
+                    <MenuItem x:Name="menu_Configurations_Console_Autoscroll" Header="Autoscroll" Checked="menu_Configurations_Console_Autoscroll_Checked" Unchecked="menu_Configurations_Console_Autoscroll_Unchecked" Click="menu_Configurations_Console_Autoscroll_Click"/>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid Margin="0,28,0,120">
+            <wfi:WindowsFormsHost Margin="10,10,10,10" >
+                <wf:PictureBox x:Name="picDisplay" Margin="0,0,0,0"></wf:PictureBox>
+            </wfi:WindowsFormsHost>
+        </Grid>
+        <TextBox x:Name="txtConsole" TextWrapping="Wrap" Text="" Height="120" VerticalAlignment="Bottom" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+    </Grid>
+</Window>
