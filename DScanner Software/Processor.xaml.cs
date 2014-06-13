@@ -62,13 +62,14 @@ namespace DScanner_Software
         {
             Stopwatch watch = new Stopwatch();
             watch.Start();
-            ImageProcessor.TrimBinaryLines(ref _TargetImage);
+            //ImageProcessor.TrimBinaryLines(ref _TargetImage);
+            DScanner.Image.ImageProcessor.Slim(ref _TargetImage);
             watch.Stop();
             System.Windows.MessageBox.Show("Time: " + watch.Elapsed.TotalMilliseconds.ToString() + "ms");
             _UpdateDisplay();
         }
 
-        // Event: Click 
+        // Event: Click save button
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
             picDisplay.Image.Save("SaveImage_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".bmp");
@@ -79,6 +80,24 @@ namespace DScanner_Software
         {
             e.Cancel = true;
             this.Visibility = System.Windows.Visibility.Hidden;
+        }
+
+        // Event: Click one step process button
+        private void btnOneStepProcess_Click(object sender, RoutedEventArgs e)
+        {
+            int bias = 0;
+            if (!(int.TryParse(txtBinaryzationBias.Text, out bias) && 0 <= bias && bias <= 255 * 3))
+            {
+                bias = 0;
+                txtBinaryzationBias.Text = "0";
+            }
+
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            DScanner.Image.ImageProcessor.OneStepProcess(ref _TargetImage, bias);
+            watch.Stop();
+            System.Windows.MessageBox.Show("Time: " + watch.Elapsed.TotalMilliseconds.ToString() + "ms");
+            _UpdateDisplay();
         }
     }
 }

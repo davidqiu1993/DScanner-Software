@@ -12,6 +12,7 @@
         <Button x:Name="btnBinaryzation" Content="Binaryzation" HorizontalAlignment="Right" VerticalAlignment="Top" Width="100" Margin="0,45,110,0" Height="30" Click="btnBinaryzation_Click"/>
         <TextBox x:Name="txtBinaryzationBias" HorizontalAlignment="Right" Height="30" Margin="0,45,10,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="95" Text="0" TextAlignment="Center" VerticalContentAlignment="Center"/>
         <Button x:Name="btnTrim" Content="Trim" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,80,10,0" Height="30" Click="btnTrim_Click"/>
-        <Button x:Name="btnSave" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,115,10,0" Height="30" Click="btnSave_Click"/>
+        <Button x:Name="btnSave" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,150,10,0" Height="30" Click="btnSave_Click"/>
+        <Button x:Name="btnOneStepProcess" Content="One Step Process" HorizontalAlignment="Right" VerticalAlignment="Top" Width="200" Margin="0,115,10,0" Height="30" Click="btnOneStepProcess_Click"/>
     </Grid>
 </Window>
