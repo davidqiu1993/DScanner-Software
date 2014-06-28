@@ -46,6 +46,7 @@ namespace DScannerServer
 
         #region Local Configurations
 
+        private bool _RawFrameFlag; // Display raw frame from the video stream
         private bool _CrosshairFlag; // Display crosshair on the video screen
 
         private int _ConsoleMaxLines = 100; // Maximum number of lines displayed on the console (Preset)
@@ -104,14 +105,11 @@ namespace DScannerServer
         #region Assistance Functions for Video Stream
 
         /// <summary>
-        /// Process the captured image.
+        /// Append crosshair on the image.
         /// </summary>
-        /// <param name="bmp">The image as a bitmap to process.</param>
-        private void _ProcessCapturedImage(ref Bitmap bmp)
+        /// <param name="bmp">Image to append crosshair.</param>
+        private void _AppendCrosshair(ref Bitmap bmp)
         {
-            // Image processing
-            ImageProcessor.OneStepProcess(ref bmp, 5);
-
             // Append crosshair
             if (_CrosshairFlag)
             {
@@ -125,6 +123,20 @@ namespace DScannerServer
                 {
                     bmp.SetPixel(i, halfHeight, Color.YellowGreen);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Process the captured image.
+        /// </summary>
+        /// <param name="bmp">The image as a bitmap to process.</param>
+        private void _ProcessCapturedImage(ref Bitmap bmp)
+        {
+            // Check if display raw frame
+            if(!_RawFrameFlag)
+            {
+                // Image processing
+                ImageProcessor.OneStepProcess(ref bmp, 5);
             }
         }
 
@@ -149,6 +161,9 @@ namespace DScannerServer
 
             // Process the frame
             _ProcessCapturedImage(ref _Bitmap);
+
+            // Append crosshair
+            _AppendCrosshair(ref _Bitmap);
 
             // Check if snapshot required
             if (_SnapshotFlag)
@@ -416,9 +431,13 @@ namespace DScannerServer
             // Initialize the serial port list for stepper
             _InitializeStepperSerialPortList();
 
+            // Initialize the configuration of raw frame
+            _RawFrameFlag = false;
+            menu_Configurations_VideoStream_RawFrame.IsChecked = false;
+
             // Initialize the configuration of crosshair
             _CrosshairFlag = true;
-            menu_Configurations_Assistance_Crosshair.IsChecked = true;
+            menu_Configurations_VideoStream_Crosshair.IsChecked = true;
 
             // Initialize the configuration of console autoscroll
             _ConsoleAutoscrollFlag = true;
@@ -561,22 +580,44 @@ namespace DScannerServer
         }
 
 
-        // Event: Click menu on "Configurations -> Assistance -> Crosshair"
-        private void menu_Configurations_Assistance_Crosshair_Click(object sender, RoutedEventArgs e)
+        // Event: Click menu on "Configurations -> Video Stream -> Raw Frame"
+        private void menu_Configurations_VideoStream_RawFrame_Click(object sender, RoutedEventArgs e)
         {
-            // Switch the check state
-            menu_Configurations_Assistance_Crosshair.IsChecked = !menu_Configurations_Assistance_Crosshair.IsChecked;
+            // Toggle the raw frame display state
+            menu_Configurations_VideoStream_RawFrame.IsChecked = !menu_Configurations_VideoStream_RawFrame.IsChecked;
         }
 
-        // Event: Switch menu state on "Configurations -> Assistance -> Crosshair" to Checked
-        private void menu_Configurations_Assistance_Crosshair_Checked(object sender, RoutedEventArgs e)
+        // Event: Switch menu state on "Configurations -> Video Stream -> Raw Frame" to Checked
+        private void menu_Configurations_VideoStream_RawFrame_Checked(object sender, RoutedEventArgs e)
+        {
+            _RawFrameFlag = true;
+            _ConsolePrintMessage("Raw frame display configuration is enabled.", MessageLevel.Info);
+        }
+
+        // Event: Switch menu state on "Configurations -> Video Stream -> Raw Frame" to Unchecked
+        private void menu_Configurations_VideoStream_RawFrame_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _RawFrameFlag = false;
+            _ConsolePrintMessage("Raw frame display configuration is disabled.", MessageLevel.Info);
+        }
+
+
+        // Event: Click menu on "Configurations -> Video Stream -> Crosshair"
+        private void menu_Configurations_VideoStream_Crosshair_Click(object sender, RoutedEventArgs e)
+        {
+            // Switch the check state
+            menu_Configurations_VideoStream_Crosshair.IsChecked = !menu_Configurations_VideoStream_Crosshair.IsChecked;
+        }
+
+        // Event: Switch menu state on "Configurations -> Video Stream -> Crosshair" to Checked
+        private void menu_Configurations_VideoStream_Crosshair_Checked(object sender, RoutedEventArgs e)
         {
             _CrosshairFlag = true;
             _ConsolePrintMessage("Crosshair configuration is enabled.", MessageLevel.Info);
         }
 
-        // Event: Switch menu state on "Configurations -> Assistance -> Crosshair" to Unchecked
-        private void menu_Configurations_Assistance_Crosshair_Unchecked(object sender, RoutedEventArgs e)
+        // Event: Switch menu state on "Configurations -> Video Stream -> Crosshair" to Unchecked
+        private void menu_Configurations_VideoStream_Crosshair_Unchecked(object sender, RoutedEventArgs e)
         {
             _CrosshairFlag = false;
             _ConsolePrintMessage("Crosshair configuration is disabled.", MessageLevel.Info);
