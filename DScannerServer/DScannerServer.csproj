@@ -111,6 +111,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DScannerCommLib\DScannerCommLib.csproj">
+      <Project>{f15baa47-c38f-492a-b1d6-2dae2c678dcf}</Project>
+      <Name>DScannerCommLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DScannerImageLib\DScannerImageLib.csproj">
       <Project>{69e9d8fe-8cdf-46e8-a2c3-58e5489630d4}</Project>
       <Name>DScannerImageLib</Name>

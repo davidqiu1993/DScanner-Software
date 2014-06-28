@@ -66,10 +66,14 @@ void loop()
 {
   // Read rotation command: "[CMD]"
   int cmdAngle = Serial.parseInt();
-  if (cmdAngle <= 0 || cmdAngle>512) return;
+  if (cmdAngle <= 0 || cmdAngle > 512)
+  {
+    Serial.print("$$RESET$$\n");
+    return;
+  }
   Serial.flush();
 
-  // Send rotation command to confirm: "$$[CMD]$$"
+  // Send rotation command to confirm: "$$:[CMD]$$"
   Serial.print("$$:"); Serial.print(cmdAngle); Serial.print("$$\n");
 
   // Check confirm: "OK"

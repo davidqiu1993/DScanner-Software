@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wfi ="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-        Title="MainWindow" Height="600" Width="900" WindowStartupLocation="CenterScreen" Closed="winMain_Closed">
+        Title="DScanner Server" Height="600" Width="900" WindowStartupLocation="CenterScreen" Closed="winMain_Closed">
     <Grid>
         <Menu Height="28" VerticalAlignment="Top">
             <MenuItem x:Name="menu_File" Header="File" Height="30">
@@ -12,6 +12,15 @@
             <MenuItem x:Name="menu_Devices" Header="Devices" Height="30">
                 <MenuItem x:Name="menu_Devices_Camera" Header="Camera">
                 </MenuItem>
+                <MenuItem x:Name="menu_Devices_Stepper" Header="Stepper">
+                    <MenuItem x:Name="menu_Devices_Stepper_Port" Header="Port">
+                    </MenuItem>
+                    <MenuItem x:Name="menu_Devices_Stepper_RunTest" Header="Run Test" Click="menu_Devices_Stepper_RunTest_Click"/>
+                </MenuItem>
+                <MenuItem x:Name="menu_Devices_Refresh" Header="Refresh" Click="menu_Devices_Refresh_Click"/>
+            </MenuItem>
+            <MenuItem x:Name="menu_VideoStream" Header="Video Stream" Height="30">
+                <MenuItem x:Name="menu_VideoStream_Snapshot" Header="Snapshot" Click="menu_VideoStream_Snapshot_Click"/>
             </MenuItem>
             <MenuItem x:Name="menu_Configurations" Header="Configurations" Height="30">
                 <MenuItem x:Name="menu_Configurations_Assistance" Header="Assistance">

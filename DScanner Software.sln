@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DScannerServer", "DScannerS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DScannerImageLib", "DScannerImageLib\DScannerImageLib.csproj", "{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DScannerCommLib", "DScannerCommLib\DScannerCommLib.csproj", "{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,16 @@ Global
 		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{69E9D8FE-8CDF-46E8-A2C3-58E5489630D4}.Release|Win32.ActiveCfg = Release|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F15BAA47-C38F-492A-B1D6-2DAE2C678DCF}.Release|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

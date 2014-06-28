@@ -1,10 +1,12 @@
 ﻿using AForge.Video;
 using AForge.Video.DirectShow;
+using DScanner.Communication;
+using DScanner.Image;
 using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using DScanner.Image;
+using System.IO.Ports;
 
 namespace DScannerServer
 {
@@ -34,9 +36,11 @@ namespace DScannerServer
 
         private FilterInfoCollection _VideoDevices = null; // The available video device list
         private VideoCaptureDevice _VideoSource = null; // The current connected video source
-
         private Bitmap _Bitmap = null; // The current displayed bitmap
-        
+
+        private string[] _SerialPortList = null; // The available serail port list
+        private StepperController _Stepper = null; // The controller of stepper
+
         #endregion
 
 
@@ -50,6 +54,8 @@ namespace DScannerServer
 
         private bool _ProcessingFlag = false; // There is task being processed
         private bool _SnapshotFlag = false; // Taking snapshot
+
+        private int _StepperBaudRate = 57600; // Baud rate of the stepper serial port
 
         #endregion
         
@@ -103,6 +109,9 @@ namespace DScannerServer
         /// <param name="bmp">The image as a bitmap to process.</param>
         private void _ProcessCapturedImage(ref Bitmap bmp)
         {
+            // Image processing
+            ImageProcessor.OneStepProcess(ref bmp, 5);
+
             // Append crosshair
             if (_CrosshairFlag)
             {
@@ -187,7 +196,7 @@ namespace DScannerServer
 
             // Append handler to new frame event
             _VideoSource.NewFrame += new NewFrameEventHandler(_NewFrameEventHandler);
-
+            
             // Connect to the camera
             _VideoSource.Start();
 
@@ -218,6 +227,12 @@ namespace DScannerServer
         /// </summary>
         private void _InitializeVideoDeviceList()
         {
+            // Clear the old list
+            if (menu_Devices_Camera.Items.Count > 0)
+            {
+                menu_Devices_Camera.Items.Clear();
+            }
+
             // Obtain the list of all video input devices
             _VideoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
 
@@ -246,6 +261,147 @@ namespace DScannerServer
         #endregion
 
 
+        #region Assistance Functions for Stepper
+
+        /// <summary>
+        /// Handler for the operation failed event of the stepper.
+        /// </summary>
+        private void _StepperOperationFailedEventHandler()
+        {
+            // Inform the operation failed message
+            _ConsolePrintMessage("Stepper operation failed.", MessageLevel.Warning);
+        }
+
+        /// <summary>
+        /// Handler for the rotation finished event of the stepper.
+        /// </summary>
+        private void _StepperRotationFinishedEventHandler()
+        {
+            // Inform the rotation finished message
+            _ConsolePrintMessage("Stepper finished rotation.", MessageLevel.Info);
+        }
+
+        /// <summary>
+        /// Connect to the specific serial port of the stepper. If no 
+        /// availale serial port exists, nothing will happen.
+        /// </summary>
+        /// <param name="index">Index of the serial port to connect to.</param>
+        private void _ConnectStepper(int index)
+        {
+            // Check if there is available serial port
+            if (_SerialPortList == null || _SerialPortList.Length == 0) return;
+
+            // Ensure the previous stepper stopped
+            _DisconnectStepper();
+
+            // Select the specific serial port
+            try
+            {
+                _Stepper = new StepperController(_SerialPortList[index]);
+            }
+            catch (Exception e)
+            {
+                _ConsolePrintMessage("private void _ConnectStepper(int): " + e.Message, MessageLevel.Error);
+                return;
+            }
+
+            // Set the baud rate
+            _Stepper.BaudRate = _StepperBaudRate;
+
+            // Append handlers to the events
+            _Stepper.RotationFinished += _StepperRotationFinishedEventHandler;
+            _Stepper.OperationFailed += _StepperOperationFailedEventHandler;
+
+            // Connect to the stepper port
+            _Stepper.Open();
+
+            // CONSOLE: Connect stepper message
+            _ConsolePrintMessage("Successfully connect to the stepper on " + _Stepper.PortName + ".", MessageLevel.Info);
+        }
+
+        /// <summary>
+        /// Disconnect the current stepper. If stepper has been stopped 
+        /// or no serial port exists, nothing will happen.
+        /// </summary>
+        private void _DisconnectStepper()
+        {
+            // Check if stpper exists
+            if (_Stepper == null) return;
+
+            // Close the stepper
+            if (_Stepper.IsOpen)
+            {
+                _Stepper.Close();
+                _ConsolePrintMessage("Stepper on " + _Stepper.PortName + " is closed.", MessageLevel.Info);
+            }
+            else
+            {
+                _ConsolePrintMessage("Stepper serial port is closed.", MessageLevel.Info);
+            }
+
+            // Reset the reference to the stepper
+            _Stepper = null;
+        }
+
+        /// <summary>
+        /// Rotate the stepper by specific steps
+        /// </summary>
+        /// <param name="steps">The number of steps to rotate.</param>
+        private void _RotateStepper(int steps)
+        {
+            if(_Stepper != null)
+            {
+                // Inform the rotation message
+                _ConsolePrintMessage("Stepper rotates for " + steps.ToString() + " steps.", MessageLevel.Info);
+
+                // Rotate the stepper
+                _Stepper.Rotate(steps);
+            }
+            else
+            {
+                // Inform the no stepper opens message
+                _ConsolePrintMessage("No stepper is connected.", MessageLevel.Error);
+            }
+        }
+
+        /// <summary>
+        /// Initialze the available serial port list for stepper.
+        /// </summary>
+        private void _InitializeStepperSerialPortList()
+        {
+            // Clear the old list
+            if (menu_Devices_Stepper_Port.Items.Count > 0)
+            {
+                menu_Devices_Stepper_Port.Items.Clear();
+            }
+
+            // Obtain the list of all available serial ports
+            _SerialPortList = SerialPort.GetPortNames();
+
+            // Check if serial port devices exist
+            if (_SerialPortList.Length == 0)
+            {
+                MenuItem item = new MenuItem();
+                item.Header = "(No Serial Port)";
+                item.IsEnabled = false;
+                menu_Devices_Stepper_Port.Items.Add(item);
+            }
+
+            // Append all available devices to the serial port list
+            for (int i = 0; i < _SerialPortList.Length; ++i)
+            {
+                MenuItem item = new MenuItem();
+                item.Header = _SerialPortList[i];
+                item.Name = "ConnectStepperOnPort_" + i;
+                item.IsChecked = false;
+                item.Click += menu_Devices_Stepper_Port_ConnectStepperOnPort_Click;
+                menu_Devices_Stepper_Port.Items.Add(item);
+            }
+        }
+
+        #endregion
+
+
         #region Main Window Logic
 
         // Event: Main window initialization
@@ -256,6 +412,9 @@ namespace DScannerServer
 
             // Initialize the device list
             _InitializeVideoDeviceList();
+
+            // Initialize the serial port list for stepper
+            _InitializeStepperSerialPortList();
 
             // Initialize the configuration of crosshair
             _CrosshairFlag = true;
@@ -272,7 +431,13 @@ namespace DScannerServer
         // Event: Main window closed
         private void winMain_Closed(object sender, EventArgs e)
         {
+            // Disconnect camera device
             _DisconnectCamera();
+
+            // Disconnect stepper
+            _DisconnectStepper();
+
+            // Shutdown the application
             Application.Current.Shutdown();
         }
 
@@ -286,6 +451,113 @@ namespace DScannerServer
         {
             _DisconnectCamera();
             Application.Current.Shutdown();
+        }
+
+
+        // Event: Click menu on "Devices -> Camera -> ConnectCamera_[X]"
+        private void menu_Devices_Camera_ConnectCamera_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtain the sender MenuItem
+            MenuItem item = (MenuItem)sender;
+
+            // Traverse the all menu items
+            foreach (object traversalItem in menu_Devices_Camera.Items)
+            {
+                MenuItem traversalMenuItem = (MenuItem)traversalItem;
+                if (traversalMenuItem.Name == item.Name)
+                {
+                    if (traversalMenuItem.IsChecked)
+                    {
+                        // Disconnect the camera
+                        _DisconnectCamera();
+
+                        // Uncheck the menu item
+                        traversalMenuItem.IsChecked = false;
+                    }
+                    else
+                    {
+                        // Obtain the camera index
+                        int index = int.Parse(item.Name.Substring(14)); // ConnectCamera_[X]
+
+                        // Connect to the selected camera
+                        _ConnectCamera(index);
+
+                        // Check the menu item
+                        traversalMenuItem.IsChecked = true;
+                    }
+                }
+                else
+                {
+                    // Uncheck other menu items
+                    if (traversalMenuItem.IsChecked) traversalMenuItem.IsChecked = false;
+                }
+            }
+        }
+
+
+        // Event: Click menu on "Devices -> Stepper -> Port -> ConnectStepperOnPort_[X]"
+        private void menu_Devices_Stepper_Port_ConnectStepperOnPort_Click(object sender, RoutedEventArgs e)
+        {
+            // Obtain the sender MenuItem
+            MenuItem item = (MenuItem)sender;
+
+            // Traverse the all menu items
+            foreach (object traversalItem in menu_Devices_Stepper_Port.Items)
+            {
+                MenuItem traversalMenuItem = (MenuItem)traversalItem;
+                if (traversalMenuItem.Name == item.Name)
+                {
+                    if (traversalMenuItem.IsChecked)
+                    {
+                        // Disconnect the serial port
+                        _DisconnectStepper();
+
+                        // Uncheck the menu item
+                        traversalMenuItem.IsChecked = false;
+                    }
+                    else
+                    {
+                        // Obtain the serial port index
+                        int index = int.Parse(item.Name.Substring(21)); // ConnectStepperOnPort_[X]
+
+                        // Connect to the selected port
+                        _ConnectStepper(index);
+
+                        // Check the menu item
+                        traversalMenuItem.IsChecked = true;
+                    }
+                }
+                else
+                {
+                    // Uncheck other menu items
+                    if (traversalMenuItem.IsChecked) traversalMenuItem.IsChecked = false;
+                }
+            }
+        }
+
+
+        // Event: Click menu on "Devices -> Stepper -> Run Test"
+        private void menu_Devices_Stepper_RunTest_Click(object sender, RoutedEventArgs e)
+        {
+            _RotateStepper(512);
+        }
+
+
+        // Event: Click menu on "Devices -> Refresh"
+        private void menu_Devices_Refresh_Click(object sender, RoutedEventArgs e)
+        {
+            // Reinitialzie video device list
+            _InitializeVideoDeviceList();
+
+            // Reinitialize serial port list
+            _InitializeStepperSerialPortList();
+        }
+
+
+        // Event: Click menu on "Video Stream -> Snapshot"
+        private void menu_VideoStream_Snapshot_Click(object sender, RoutedEventArgs e)
+        {
+            _SnapshotFlag = true;
         }
 
 
@@ -330,47 +602,6 @@ namespace DScannerServer
         {
             _ConsoleAutoscrollFlag = false;
             _ConsolePrintMessage("Console autoscroll configutation is disabled.", MessageLevel.Info);
-        }
-
-
-        // Event: Click menu on "Devices -> Camera -> ConnectCamera_[X]"
-        private void menu_Devices_Camera_ConnectCamera_Click(object sender, RoutedEventArgs e)
-        {
-            // Obtain the sender MenuItem
-            MenuItem item = (MenuItem)sender;
-
-            // Traverse the all menu items
-            foreach(object traversalItem in menu_Devices_Camera.Items)
-            {
-                MenuItem traversalMenuItem = (MenuItem)traversalItem;
-                if(traversalMenuItem.Name == item.Name)
-                {
-                    if(traversalMenuItem.IsChecked)
-                    {
-                        // Disconnect the camera
-                        _DisconnectCamera();
-
-                        // Uncheck the menu item
-                        traversalMenuItem.IsChecked = false;
-                    }
-                    else
-                    {
-                        // Obtain the camera index
-                        int index = int.Parse(item.Name.Substring(14)); // ConnectCamera_[X]
-
-                        // Connect to the selected camera
-                        _ConnectCamera(index);
-
-                        // Check the menu item
-                        traversalMenuItem.IsChecked = true;
-                    }
-                }
-                else
-                {
-                    // Uncheck other menu items
-                    if (traversalMenuItem.IsChecked) traversalMenuItem.IsChecked = false;
-                }
-            }
         }
 
         #endregion
