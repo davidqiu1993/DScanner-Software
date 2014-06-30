@@ -19,13 +19,18 @@
                 </MenuItem>
                 <MenuItem x:Name="menu_Devices_Refresh" Header="Refresh" Click="menu_Devices_Refresh_Click"/>
             </MenuItem>
-            <MenuItem x:Name="menu_VideoStream" Header="Video Stream" Height="30">
-                <MenuItem x:Name="menu_VideoStream_Snapshot" Header="Snapshot" Click="menu_VideoStream_Snapshot_Click"/>
+            <MenuItem x:Name="menu_Scanner" Header="Scanner" Height="30">
+                <MenuItem x:Name="menu_Scanner_ScanInFastMode" Header="Scan (Fast Mode)" Click="menu_Scanner_ScanInFastMode_Click"/>
+                <MenuItem x:Name="menu_Scanner_Export3DPoints" Header="Export 3D Points" Click="menu_Scanner_Export3DPoints_Click"/>
+                <Separator/>
+                <MenuItem x:Name="menu_Scanner_Snapshot" Header="Snapshot" Click="menu_Scanner_Snapshot_Click"/>
+                <Separator/>
+                <MenuItem x:Name="menu_Scanner_PrintCoordinates" Header="Print Coordinates" Click="menu_Scanner_PrintCoordinates_Click"/>
             </MenuItem>
             <MenuItem x:Name="menu_Configurations" Header="Configurations" Height="30">
-                <MenuItem x:Name="menu_Configurations_VideoStream" Header="VideoStream">
-                    <MenuItem x:Name="menu_Configurations_VideoStream_RawFrame" Header="RawFrame" Click="menu_Configurations_VideoStream_RawFrame_Click" Checked="menu_Configurations_VideoStream_RawFrame_Checked" Unchecked="menu_Configurations_VideoStream_RawFrame_Unchecked"/>
-                    <MenuItem x:Name="menu_Configurations_VideoStream_Crosshair" Header="Crosshair" Checked="menu_Configurations_VideoStream_Crosshair_Checked" Unchecked="menu_Configurations_VideoStream_Crosshair_Unchecked" Click="menu_Configurations_VideoStream_Crosshair_Click"/>
+                <MenuItem x:Name="menu_Configurations_Scanner" Header="Scanner">
+                    <MenuItem x:Name="menu_Configurations_Scanner_RawFrame" Header="RawFrame" Click="menu_Configurations_Scanner_RawFrame_Click" Checked="menu_Configurations_Scanner_RawFrame_Checked" Unchecked="menu_Configurations_Scanner_RawFrame_Unchecked"/>
+                    <MenuItem x:Name="menu_Configurations_Scanner_Crosshair" Header="Crosshair" Checked="menu_Configurations_Scanner_Crosshair_Checked" Unchecked="menu_Configurations_Scanner_Crosshair_Unchecked" Click="menu_Configurations_Scanner_Crosshair_Click"/>
                 </MenuItem>
                 <MenuItem x:Name="menu_Configurations_Console" Header="Console">
                     <MenuItem x:Name="menu_Configurations_Console_Autoscroll" Header="Autoscroll" Checked="menu_Configurations_Console_Autoscroll_Checked" Unchecked="menu_Configurations_Console_Autoscroll_Unchecked" Click="menu_Configurations_Console_Autoscroll_Click"/>

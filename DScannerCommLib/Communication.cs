@@ -137,7 +137,14 @@ namespace DScanner.Communication
                     case "START":
                         {
                             // Set the stepper state as started
-                            if (_StepperState == StepperState.CommandConfirmed) _StepperState = StepperState.RotationStarted;
+                            if (_StepperState == StepperState.CommandConfirmed)
+                            {
+                                // Set the stepper state as started
+                                _StepperState = StepperState.RotationStarted;
+
+                                // Send rotation started event
+                                RotationStarted();
+                            }
                             else
                             {
                                 OperationFailed();
@@ -172,6 +179,16 @@ namespace DScanner.Communication
 
 
         #region Delegates and Events
+
+        /// <summary>
+        /// Handler for rotation started event.
+        /// </summary>
+        public delegate void RotationStartedEventHandler();
+
+        /// <summary>
+        /// Rotation started event.
+        /// </summary>
+        public event RotationStartedEventHandler RotationStarted;
 
         /// <summary>
         /// Handler for rotation finished event.

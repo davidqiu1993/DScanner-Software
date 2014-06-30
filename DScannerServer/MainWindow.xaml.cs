@@ -3,10 +3,13 @@ using AForge.Video.DirectShow;
 using DScanner.Communication;
 using DScanner.Image;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.IO.Ports;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.IO.Ports;
 
 namespace DScannerServer
 {
@@ -41,10 +44,19 @@ namespace DScannerServer
         private string[] _SerialPortList = null; // The available serail port list
         private StepperController _Stepper = null; // The controller of stepper
 
+        private List<Point2D<int>[]> _PointFrames = null; // Point frames
+        private Point3D<float>[] _PointsIn3DCoordinate = null; // Points in 3D coordinate
+
         #endregion
 
 
         #region Local Configurations
+
+        private float _AngleLaserCamera = 20.8f; // Angle between laser bean and camera
+        private bool _ScanningFlag = false; // Indicating scanning object
+        private int _RotationStep = 1; // Step for each rotation
+        private bool _ExtractLaserBeanPointsFlag = false; // Extracting laser bean points
+        private bool _FastPointFlameRecordingFlag = false; // Extracting and recording laser bean points in fast mode
 
         private bool _RawFrameFlag; // Display raw frame from the video stream
         private bool _CrosshairFlag; // Display crosshair on the video screen
@@ -55,6 +67,8 @@ namespace DScannerServer
 
         private bool _ProcessingFlag = false; // There is task being processed
         private bool _SnapshotFlag = false; // Taking snapshot
+
+        private bool _PrintCoordinatesFlag = false; // Printing the coordinates
 
         private int _StepperBaudRate = 57600; // Baud rate of the stepper serial port
 
@@ -102,6 +116,69 @@ namespace DScannerServer
         #endregion  
 
 
+        #region Assistance Functions for Scanner Core
+
+        /// <summary>
+        /// Process the captured image.
+        /// </summary>
+        /// <param name="bmp">The image as a bitmap to process.</param>
+        private void _ProcessCapturedImage(ref Bitmap bmp)
+        {
+            // Check if process the frame
+            if (!_RawFrameFlag || _ScanningFlag)
+            {
+                // Process the income frame
+                Point2D<int>[] points = ImageProcessor.OneStepExtractLaserBeanPoints(ref bmp, 5);
+
+                // Check if adding to point frame set
+                if(_FastPointFlameRecordingFlag || _ExtractLaserBeanPointsFlag)
+                {
+                    // Add to point frame set
+                    _PointFrames.Add(points);
+
+                    // Reset the extract laser bean points flag
+                    _ExtractLaserBeanPointsFlag = false;
+                }
+
+                // Check the print coordinates flag
+                if(_PrintCoordinatesFlag)
+                {
+                    // Print the coordinates
+                    _ConsolePrintMessage("Coordinate Set = ", MessageLevel.Info);
+                    _ConsolePrint("{ ");
+                    for (int i = 0; i < points.Length - 1; ++i) _ConsolePrint("(" + points[i].X + ", " + points[i].Y + "), ");
+                    if (points.Length > 0) _ConsolePrint("(" + points[points.Length - 1].X + ", " + points[points.Length - 1].Y + ")");
+                    _ConsolePrintLine(" }");
+
+                    // Reset the flag
+                    _PrintCoordinatesFlag = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Callback function after fast scanning started.
+        /// </summary>
+        private void _FastScanningStartedCallback()
+        {
+            // Start fast mode point frame recording
+            _FastPointFlameRecordingFlag = true;
+        }
+
+        /// <summary>
+        /// Callback function after fast scanning finished.
+        /// </summary>
+        private void _FastScanningFinishedCallback()
+        {
+            Point2D<int>[][] pointFrameArr = _PointFrames.ToArray();
+            _PointsIn3DCoordinate = ImageProcessor.ConvertTo3DCoordinates(ref pointFrameArr, _AngleLaserCamera);
+
+            _ConsolePrintMessage("Scanned 3D Point :: Count = " + _PointsIn3DCoordinate.Length, MessageLevel.Info);
+        }
+
+        #endregion
+
+
         #region Assistance Functions for Video Stream
 
         /// <summary>
@@ -123,20 +200,6 @@ namespace DScannerServer
                 {
                     bmp.SetPixel(i, halfHeight, Color.YellowGreen);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Process the captured image.
-        /// </summary>
-        /// <param name="bmp">The image as a bitmap to process.</param>
-        private void _ProcessCapturedImage(ref Bitmap bmp)
-        {
-            // Check if display raw frame
-            if(!_RawFrameFlag)
-            {
-                // Image processing
-                ImageProcessor.OneStepProcess(ref bmp, 5);
             }
         }
 
@@ -288,12 +351,21 @@ namespace DScannerServer
         }
 
         /// <summary>
+        /// Handler for the rotation started event of the stepper.
+        /// </summary>
+        private void _StepperRotationStartedEventHandler()
+        {
+            // Inform the rotation started message
+            _ConsolePrintMessage("Stepper rotation started.", MessageLevel.Info);
+        }
+
+        /// <summary>
         /// Handler for the rotation finished event of the stepper.
         /// </summary>
         private void _StepperRotationFinishedEventHandler()
         {
             // Inform the rotation finished message
-            _ConsolePrintMessage("Stepper finished rotation.", MessageLevel.Info);
+            _ConsolePrintMessage("Stepper rotation finished.", MessageLevel.Info);
         }
 
         /// <summary>
@@ -324,7 +396,11 @@ namespace DScannerServer
             _Stepper.BaudRate = _StepperBaudRate;
 
             // Append handlers to the events
+            _Stepper.RotationStarted -= _StepperRotationStartedEventHandler;
+            _Stepper.RotationStarted += _StepperRotationStartedEventHandler;
+            _Stepper.RotationFinished -= _StepperRotationFinishedEventHandler;
             _Stepper.RotationFinished += _StepperRotationFinishedEventHandler;
+            _Stepper.OperationFailed -= _StepperOperationFailedEventHandler;
             _Stepper.OperationFailed += _StepperOperationFailedEventHandler;
 
             // Connect to the stepper port
@@ -433,11 +509,11 @@ namespace DScannerServer
 
             // Initialize the configuration of raw frame
             _RawFrameFlag = false;
-            menu_Configurations_VideoStream_RawFrame.IsChecked = false;
+            menu_Configurations_Scanner_RawFrame.IsChecked = false;
 
             // Initialize the configuration of crosshair
             _CrosshairFlag = true;
-            menu_Configurations_VideoStream_Crosshair.IsChecked = true;
+            menu_Configurations_Scanner_Crosshair.IsChecked = true;
 
             // Initialize the configuration of console autoscroll
             _ConsoleAutoscrollFlag = true;
@@ -573,51 +649,113 @@ namespace DScannerServer
         }
 
 
-        // Event: Click menu on "Video Stream -> Snapshot"
-        private void menu_VideoStream_Snapshot_Click(object sender, RoutedEventArgs e)
+        // Event: Click menu on "Scanner -> Scan (Fast Mode)"
+        private void menu_Scanner_ScanInFastMode_Click(object sender, RoutedEventArgs e)
+        {
+            // Check if stepper online
+            if (_Stepper == null)
+            {
+                // Inform the no stepper opens message
+                _ConsolePrintMessage("No stepper is connected.", MessageLevel.Error);
+
+                // Cancel operation
+                return;
+            }
+
+            // Initialize point frame set
+            _PointFrames = new List<Point2D<int>[]>();
+
+            // Register fast scanning started callback function
+            _Stepper.RotationStarted -= _FastScanningStartedCallback;
+            _Stepper.RotationStarted += _FastScanningStartedCallback;
+
+            // Register fast scanning finished callback function
+            _Stepper.RotationFinished -= _FastScanningFinishedCallback;
+            _Stepper.RotationFinished += _FastScanningFinishedCallback;
+
+            // Start rotation for a full cycle
+            _Stepper.Rotate(512);
+        }
+
+
+        // Event: Click menu on "Scanner -> Export 3D Points"
+        private void menu_Scanner_Export3DPoints_Click(object sender, RoutedEventArgs e)
+        {
+            if(_PointsIn3DCoordinate !=null)
+            {
+                // Generate the file name
+                string filename = "PointClouds_" + DateTime.Now.ToString("yyyyMMdd_hhmmss") + ".asc";
+
+                // Export the point clouds
+                FileStream fs = File.Open(filename, FileMode.Create, FileAccess.Write, FileShare.None);
+                StreamWriter sw = new StreamWriter(fs, Encoding.Default);
+                foreach (var point in _PointsIn3DCoordinate) sw.WriteLine(point.X.ToString("0.0000") + " " + point.Y.ToString("0.0000") + " " + point.Z.ToString("0.0000"));
+                sw.Close();
+                fs.Close();
+
+                // Inform export succeeded
+                _ConsolePrintMessage("3D point clouds is exported as \"" + filename + "\"", MessageLevel.Info);
+            }
+            else
+            {
+                // Inform export failed
+                _ConsolePrintMessage("No point clouds exist. Please scan an object first.", MessageLevel.Error);
+            }
+        }
+
+
+        // Event: Click menu on "Scanner -> Snapshot"
+        private void menu_Scanner_Snapshot_Click(object sender, RoutedEventArgs e)
         {
             _SnapshotFlag = true;
         }
 
-
-        // Event: Click menu on "Configurations -> Video Stream -> Raw Frame"
-        private void menu_Configurations_VideoStream_RawFrame_Click(object sender, RoutedEventArgs e)
+        
+        // Event: Click menu on "Scanner -> Print Coordinates"
+        private void menu_Scanner_PrintCoordinates_Click(object sender, RoutedEventArgs e)
         {
-            // Toggle the raw frame display state
-            menu_Configurations_VideoStream_RawFrame.IsChecked = !menu_Configurations_VideoStream_RawFrame.IsChecked;
+            _PrintCoordinatesFlag = true;
         }
 
-        // Event: Switch menu state on "Configurations -> Video Stream -> Raw Frame" to Checked
-        private void menu_Configurations_VideoStream_RawFrame_Checked(object sender, RoutedEventArgs e)
+
+        // Event: Click menu on "Configurations -> Scanner -> Raw Frame"
+        private void menu_Configurations_Scanner_RawFrame_Click(object sender, RoutedEventArgs e)
+        {
+            // Toggle the raw frame display state
+            menu_Configurations_Scanner_RawFrame.IsChecked = !menu_Configurations_Scanner_RawFrame.IsChecked;
+        }
+
+        // Event: Switch menu state on "Configurations -> Scanner -> Raw Frame" to Checked
+        private void menu_Configurations_Scanner_RawFrame_Checked(object sender, RoutedEventArgs e)
         {
             _RawFrameFlag = true;
             _ConsolePrintMessage("Raw frame display configuration is enabled.", MessageLevel.Info);
         }
 
-        // Event: Switch menu state on "Configurations -> Video Stream -> Raw Frame" to Unchecked
-        private void menu_Configurations_VideoStream_RawFrame_Unchecked(object sender, RoutedEventArgs e)
+        // Event: Switch menu state on "Configurations -> Scanner -> Raw Frame" to Unchecked
+        private void menu_Configurations_Scanner_RawFrame_Unchecked(object sender, RoutedEventArgs e)
         {
             _RawFrameFlag = false;
             _ConsolePrintMessage("Raw frame display configuration is disabled.", MessageLevel.Info);
         }
 
 
-        // Event: Click menu on "Configurations -> Video Stream -> Crosshair"
-        private void menu_Configurations_VideoStream_Crosshair_Click(object sender, RoutedEventArgs e)
+        // Event: Click menu on "Configurations -> Scanner -> Crosshair"
+        private void menu_Configurations_Scanner_Crosshair_Click(object sender, RoutedEventArgs e)
         {
             // Switch the check state
-            menu_Configurations_VideoStream_Crosshair.IsChecked = !menu_Configurations_VideoStream_Crosshair.IsChecked;
+            menu_Configurations_Scanner_Crosshair.IsChecked = !menu_Configurations_Scanner_Crosshair.IsChecked;
         }
 
-        // Event: Switch menu state on "Configurations -> Video Stream -> Crosshair" to Checked
-        private void menu_Configurations_VideoStream_Crosshair_Checked(object sender, RoutedEventArgs e)
+        // Event: Switch menu state on "Configurations -> Scanner -> Crosshair" to Checked
+        private void menu_Configurations_Scanner_Crosshair_Checked(object sender, RoutedEventArgs e)
         {
             _CrosshairFlag = true;
             _ConsolePrintMessage("Crosshair configuration is enabled.", MessageLevel.Info);
         }
 
-        // Event: Switch menu state on "Configurations -> Video Stream -> Crosshair" to Unchecked
-        private void menu_Configurations_VideoStream_Crosshair_Unchecked(object sender, RoutedEventArgs e)
+        // Event: Switch menu state on "Configurations -> Scanner -> Crosshair" to Unchecked
+        private void menu_Configurations_Scanner_Crosshair_Unchecked(object sender, RoutedEventArgs e)
         {
             _CrosshairFlag = false;
             _ConsolePrintMessage("Crosshair configuration is disabled.", MessageLevel.Info);
